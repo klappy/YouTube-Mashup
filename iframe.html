@@ -1,0 +1,90 @@
+<!doctype html>
+<html>
+<head>
+<title>YouTube player by Klappy</title>
+<style type='text/css'>
+	#youtube {width:665px; height:415px;}
+	#youtube img {position:fixed;top:61px;left:10px; width:640px;z-index:-1;}
+	iframe {
+		-webkit-transition: opacity 0.6s linear; opacity:0;
+		-webkit-box-shadow: 5px 5px 7px #888;
+	}
+	.fadein { -webkit-transition: opacity 0.6s linear; opacity:1; }
+	iframe, div#embed {
+		width:640px; height:390px;
+		position:fixed;top:10px;left:10px;
+	}
+	code {
+		height: 100px; width: 400px;
+		margin: 138px auto; padding: 10px 0 0 15px;
+		border-radius: 20px; background: white; display:block;
+		-webkit-transition: opacity 0.6s linear; opacity: 0;
+		-webkit-box-shadow: 5px 5px 7px #888;
+	}
+	code.fadein {
+		-webkit-transition: opacity 0.6s linear; opacity: 0.9;
+	}
+	p.mashup { font-family:helvetica; margin:0; text-shadow:1px 1px 2px #888; }
+	.mashup a {	text-decoration:none;  color:black; }
+	.mashup span { cursor:pointer; }
+</style>
+<script type='text/javascript' src='http://www.youtube.com/player_api' async></script>
+<script type='text/javascript'>
+	var youtube=[];var currentPlaylist=document.location.hash.replace('#','');var currentVideo=0;var done=false;
+	var playlist = {
+	  'A': [ {'id': 'u1zgFlCw8Aw', 'from': 22, 'to': 28.6, 'volume': 40, 'created': false},
+		{'id': 'u1zgFlCw8Aw', 'from': 127, 'to': 140.95, 'volume': 37, 'created': false},
+		{'id': 'L5ebSn9HgJ4', 'from': 3019, 'to': 3040.5, 'volume': 100, 'created': false},
+		{'id': 'u1zgFlCw8Aw', 'from': 195, 'to': 198.8, 'volume': 50, 'created': false}
+	  ],
+	  'B': [ {'id': 'yFhFu25TGxM', 'from': 2, 'to': 10.5, 'volume': 100, 'created': false},
+		{'id': 'tgGxi3hiOnY', 'from': 0, 'to': 10.9, 'volume': 45, 'created': false},
+		{'id': 'B4Y_2V5caQk', 'from': 23, 'to': 33.3, 'volume': 37, 'created': false},
+		{'id': 'x5tj9uSc2_4', 'from': 8, 'to': 29, 'volume': 55, 'created': false}
+	  ]
+	};
+    function onYouTubePlayerAPIReady(){ createPlayer(currentVideo); }
+    function onVideoReady(e) {
+		var c = currentVideo;
+		var video = playlist[currentPlaylist][c];
+		e.target.setVolume(video['volume']); e.target.seekTo(video['from']); }
+	function next(c){
+		if(c < playlist[currentPlaylist].length){
+			var n = c+1; var video = playlist[currentPlaylist][c]; var iframe = document.getElementsByTagName('iframe')[c];
+			if( youtube[c].getCurrentTime() > video['to'] ){
+				youtube[c].stopVideo();
+				createPlayer(n);
+			}else if( (youtube[c].getCurrentTime()+0.7 > video['to']) ){ iframe.className = ''; setTimeout('next('+c+')',10);
+			}else{ setTimeout('next('+c+')',25);	}	}	}
+	function createPlayer(c){
+		if(c < playlist[currentPlaylist].length){
+			youtube[c] = new YT.Player('youtube', {
+				width:'640px', height:'390px', videoId: playlist[currentPlaylist][c]['id'], playerVars: { 'autoplay': 0},
+				events: { 'onReady': onVideoReady, 'onStateChange': onVideoStateChange }
+			});
+			playlist[currentPlaylist][c]['created'] = true;
+			currentVideo = c;
+		}else{
+			for (i in playlist[currentPlaylist]){
+				var iframe = document.getElementsByTagName('iframe')[i];
+				iframe.style.display = 'none';	}	
+			var embedcode = document.getElementsByTagName('code')[0];
+			embedcode.innerHTML = "&lt;iframe src=&#39;http://s3.amazonaws.com/klapp/iframe.html#"+currentPlaylist+"&#39; frameborder=&#39;0&#39; style=&#39;height:475px; width:675px; margin: 50px auto;&#39;&gt;&lt;p&gt;&lt;a href=&#39;http://www.google.com/chrome/&#39;&gt;Please Download Google Chrome.&lt;/a&gt;&lt;/p&gt;&lt;/iframe&gt;";
+			embedcode.className = 'fadein'; }	}
+    function onVideoStateChange(e) {
+		var c = currentVideo;
+        if (e.data == 1 && c < playlist[currentPlaylist].length) {
+			var iframe = document.getElementsByTagName('iframe')[c];
+			iframe.className = 'fadein';
+			next(c); }	}
+	function flush(p){
+		window.location.href='./iframe.html#'+p;
+		window.location.reload();
+	}
+</script>
+</head>
+<body title='Best viewed using Google Chrome.' onload=''>
+	<div id='embed'><code></code></div>
+	<div id='youtube'><img src='./youtube.jpg' alt='YouTube' id='logo'></div>
+	<p class='mashup'><a style='float:right; margin-right:15px;' target='_blank' title='For best results, click here to enable HTML5.' href='http://www.youtube.com/html5'>Join the HTML5 revolution!</a><span onclick="flush('A')">Mashup A</span> / <span onclick="flush('B')">Mashup B</span></p>
+</body>
